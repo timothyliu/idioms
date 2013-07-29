@@ -1,0 +1,174 @@
+﻿<!DOCTYPE html>
+<html>
+	<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta name="description" content="成語接龍遊戲">
+	<title>成語接龍</title>
+	<link rel="stylesheet" href="/script/jquery.mobile/jquery.mobile.css" />
+	<script src="/script/jquery.min.js"></script>
+	<script src="/script/jquery.mobile/jquery.mobile.min.js"></script>
+	<script src="/script/jquery.mobile/jqm.autoComplete-1.5.0-min.js"></script>
+	<!--link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.9.1/themes/base/jquery-ui.css" / -->
+	<style>
+		.ui-header .ui-btn, .ui-footer .ui-btn {
+			display: block;
+		}
+		.ui-select a,
+		.ui-select a > span
+		 {
+			-moz-border-radius: 0;
+			-webkit-border-radius: 0;
+			border-radius: 0;
+		}
+		.ui-input-search {
+		    width: 70%;
+		    display: inline-block;
+		}
+		.alpha1 {
+		    opacity:0.4;
+		    z-index: -1;
+		}
+	</style>
+	<script src="/script/zuinHelper.js"></script>
+	<script src="/script/idiomsHelper.js"></script>
+	<script type="text/javascript">
+		var testobj;
+		var z = zuinHelper;
+		var idioms = idiomsHelper;
+		var historyIdioms = [];
+		$(document).ready(function() {
+			if(location.hash != '') location.href='/idioms';
+			$('[type="submit"]').button('disable');
+			z.onReady(function(){
+				idioms.onReady(function(){
+					$('[type="submit"]').button('enable');
+					$.mobile.changePage($('#home'), {});
+				});
+			});
+		});
+		$("#home").live("pageshow", function(e) {
+			var sugList = $("#suggestions"),
+				historyIdioms = [];
+
+			$("#idiom").on("input", function(e) {
+				var text = $(this).val();
+				if(text.length < 1) {
+					sugList.html("");
+					sugList.listview("refresh");
+				} else {
+					var arr = jQuery.grep(idioms.idioms, function(w){
+						return (w.indexOf(text)==0);
+					});
+					var str = "";
+					for(var i=0, len=arr.length; i<len; i++) {
+						str += '<li><a href="#idiomsok?idiom=' + $.trim(arr[i]) + '">'+$.trim(arr[i])+'</a></li>';
+					}
+					sugList.html(str);
+					sugList.listview("refresh");
+				}
+			});
+		});
+		function getIdioms(firstChar, isTest){
+			var samePhone = z.findSame(firstChar);
+			var result = [];
+			for(var i=0; i<samePhone.length; i++){
+				var tmp = idioms.startWith(samePhone[i], isTest);
+				if(tmp.length>0) result = result.concat(tmp);
+			}
+			return result;
+		}
+
+		function showSolitaire(urlObj, options){
+			var pageSelector = urlObj.hash.replace(/\?.*$/, "");
+			var ipt;
+			if(pageSelector=='#back' && historyIdioms.length<=1){
+				$.mobile.changePage($('#home'), {});
+			}
+			else if(pageSelector=='#back'){
+				pageSelector='#idiomsok';
+				historyIdioms.pop();
+				ipt = historyIdioms.pop();
+			}
+			else if(options.data) {
+				ipt = decodeURIComponent(options.data.replace(/.*idiom=/, ""));
+			}
+			else {
+				ipt = urlObj.hash.replace( /.*idiom=/, "" );
+			}
+			if(!ipt || ipt.length==0) { $.mobile.changePage($('#home'), {}); return; }
+			if(historyIdioms.length>100) historyIdioms.shift(); //remove oldest item
+			historyIdioms.push(ipt);
+
+			var lastChar = ipt.slice(-1);
+			result = getIdioms(lastChar);
+			var opt = [];
+			for(var i=0; i<result.length; i++){
+				var r = $.trim(result[i]);
+				if(r.length<4) continue;
+				opt.push('<li><a href="#idiomsok?idiom=' + (r) + '">' + r + '</a><span class="ui-li-count alpha1">' + z.parse(r).replace(/\|/g, '/') + '</span></li>');
+			}
+			var $page = $(pageSelector),
+				$header = $page.children(":jqmData(role=header)"),
+				$content = $page.children(":jqmData(role=content)"),
+				markup = '<div class="content-primary"><ol data-role="listview" data-autodividers="true">' + opt.join('\n') + '</ol></div>';
+			$header.find("h1").html(ipt);
+			$content.html(markup);
+			$page.page();
+			$content.find(":jqmData(role=listview)").listview();
+			options.dataUrl = urlObj.href;
+			$.mobile.changePage($page, options);
+		}
+
+		$(document).on("pagebeforechange", function(e, data) {
+			if (typeof data.toPage === "string") {
+				var u = $.mobile.path.parseUrl(data.toPage),
+				re = /#(idiomsok|back)/;
+				if (u.hash.search(re) !== -1) {
+					showSolitaire(u, data.options);
+					e.preventDefault();
+				}
+				if (u.hash.search(/#home/) !== -1) {
+					$page = $('#home');
+					$.mobile.changePage($page, data.options);
+					e.preventDefault();
+				}
+			}
+		});
+	</script>
+	</head>
+	<body>
+		<div id="home" data-role="page" class="type-interior">
+			<div data-role="header" data-theme="a" data-title="成語接龍 - 查詢">
+				<h1>成語接龍</h1>
+			</div>
+			<div data-role="content">
+				<form method="get" action="#idiomsok">
+				<div class="ui-body ui-body-b">
+					<fieldset class="ui-grid-a">
+						<div class="ui-block-b">
+							<label for='idiom'>成語：</label> <input type='search' name='idiom' id='idiom' value='一元復始' placeholder='請輸入成語'>
+							<button type="submit" data-theme="a" data-inline="true" class="ui-btn-hidden" aria-disabled="false">查詢</button>
+							<ul id="suggestions" data-role="listview" data-inset="true"></ul>
+						</div>
+					</fieldset>
+				</div>
+				</form>
+			</div>
+			<div data-role="footer" data-position="fixed">
+				<p>Version 1.0 © 2012 cuz.tw and other contributors</p>
+			</div>
+		</div>
+		<div id="idiomsok" data-role="page" class="type-interior" data-title="成語接龍 - 結果">
+			<div data-role="header" data-theme="d">
+				<a href="#back" data-role="button" data-inline="true" data-theme="b" data-icon="back">BACK</a>
+				<h1>成語接龍</h1>
+				<a href="#home" data-role="button" data-inline="true" data-theme="b" data-icon="home">HOME</a>
+			</div>
+			<div data-role="content"></div>
+			<div data-role="footer" data-position="fixed">
+				<p>Version 1.0 © 2012 cuz.tw and other contributors</p>
+			</div>
+		</div>
+	</body>
+</html>

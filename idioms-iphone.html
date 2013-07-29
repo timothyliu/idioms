@@ -1,0 +1,129 @@
+﻿<!DOCTYPE html>
+<html>
+	<head>
+	<meta charset="utf-8">
+	<meta name="description" content="成語接龍遊戲">
+	<title>成語接龍</title>
+    <link rel="stylesheet" type="text/css" href="style/iphone/iphone.css" media="all"/>
+	<link rel="stylesheet" href="style/iphone/style.css" type='text/css' media='all' />
+	<link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.9.1/themes/base/jquery-ui.css" />
+
+    <!--
+    <meta name="viewport" content="user-scalable=no, width=device-width"/>
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+	<link rel="stylesheet" href="/style/iphone/iphone-480.css" type='text/css' media='only screen and (max-device-width: 480px)' />
+	-->
+	<style>
+		div.ipt {
+			white-space: nowrap;
+			vertical-align: middle;
+		}
+		button#find {
+			color: darkred;
+		}
+	</style>
+	<script src="zuinHelper.js"></script>
+	<script src="idiomsHelper.js"></script>
+	<script type="text/javascript">
+		var z = zuinHelper;
+		var idioms = idiomsHelper;
+		var historyIdioms = [];
+		$(document).ready(function() {
+			/*$('.display').iMenuManager({
+				link   : 'a[href!=#]:not(.external):not(.bigbutton)', // selector for bind goTo event
+				content: '.display',    // what content load from target URL - default is body
+				title  : '.titlebar',  // where widget can found title - default is title
+				back   : '.titlebar'
+			});*/
+
+			z.onReady(function(){
+				idioms.onReady(function(){
+					$('#find').attr('onclick', 'showSolitaire();');
+					$('#back').attr('onclick', 'showLast();');
+					$('#find').attr('disabled', false);
+					$('#idiom').autocomplete({
+			            source: function( request, response ) {
+				            var matcher = new RegExp( "^" + $.ui.autocomplete.escapeRegex( request.term ), "i" );
+				            response( $.grep( idioms.idioms, function( item ){
+				                return matcher.test( item );
+				            }) );
+				        },
+			            minLength: 1
+			        });
+				});
+			});
+		});
+		function showSolitaire(){
+			var ipt = $('#idiom').val();
+			if(!ipt || ipt.length==0) return;
+			if(historyIdioms.length>100) historyIdioms.shift(); //remove oldest item
+			historyIdioms.push(ipt);
+			if(historyIdioms.length>=2) {
+				$('#back').attr('disabled', false);
+			}
+			var lastChar = ipt.slice(-1);
+			result = getIdioms(lastChar);
+			var opt = [];
+			for(var i=0; i<result.length; i++){
+				var r = $.trim(result[i]);
+				if(r.length<4) continue;
+				//console.log(i + ' ' + r + ' -> ' +r.slice(-1));
+				var tmp = getIdioms(r.slice(-1), true);
+				var hasNext = (tmp&&tmp[0] == 'true');
+				opt.push('<li><a href="#" ' + (hasNext? 'class="arrow"':'') + ' onclick="findIdiom($(this).text());" title="' + z.parse(r) + '">' + r + '</a></li>');
+			}
+			$('#result').html('<ul class="menu">' + opt.join('\n') + '</ul>');
+			$(".menu").iMenu();
+			$(".scroll").iScroll({height:500});
+		}
+		function getIdioms(firstChar, isTest){
+			var samePhone = z.findSame(firstChar);
+			var result = [];
+			for(var i=0; i<samePhone.length; i++){
+				var tmp = idioms.startWith(samePhone[i], isTest);
+				if(tmp.length>0) result = result.concat(tmp);
+			}
+			return result;
+		}
+		function findIdiom(ipt){
+			$('#idiom').val(ipt);
+			showSolitaire();
+		}
+		function showLast(){
+			if(historyIdioms.length<=2){
+				$('#back').attr('disabled', true);
+			}
+			historyIdioms.pop()
+			var tmp = historyIdioms.pop();
+			$('#idiom').val(tmp);
+			showSolitaire();
+		}
+	</script>
+	</head>
+	<body>
+
+    <div class="iphone vertical">
+        <div class="phone">
+    	<div class="display">
+            <div class="screen">
+                <div class="titlebar">成語接龍
+                	<a id='back' class='iphoneui back' disabled> Back </a>
+                </div>
+				<div class='ipt'>
+					<label for='idiom'>成語：</label> <input type='text' name='idiom' id='idiom' value='一元復始' placeholder='請輸入成語'>
+					<button id='find' disabled>Find</button>
+				</div>
+                <div id="result" class="scroll">
+                </div>
+            	<div class="iscrollbar" style="height: 435px;"><div style="height: 258.50409836065575px;"></div>
+            	</div>
+			</div>
+		</div>
+		</div>
+	</div>
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+	<script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.10.2/jquery-ui.min.js"></script>
+    <script src="jquery.iphone.js"></script>
+    <script src="jquery.mousewheel.min.js"></script>
+	</body>
+</html>

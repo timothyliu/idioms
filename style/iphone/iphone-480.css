@@ -1,0 +1,52 @@
+body {
+	-webkit-user-select: none;       /*Determines whether a user can select the content of an element.*/
+	-webkit-touch-callout: none;     /*Disables the default callout shown when you touch and hold a touch target*/
+	-webkit-text-size-adjust: 240%;  /*Specifies a size adjustment for displaying text content in Safari on iPhone*/
+	zoom:240%;
+	height:100% !important;
+}
+.iphone.vertical,
+.iphone.horizontal,
+.iphone .display  {
+	width:100% !important;
+	padding:0 !important;
+	background: none;
+}
+.iphone{
+	height:auto !important;
+	overflow-y:auto !important;
+	overflow-x:hidden;
+}
+
+.iphone .phone{
+	height:auto;
+	/*overflow-y:auto !important;*/
+	overflow-x:hidden;
+}
+.iphone .display{
+	height:auto !important;
+	/*overflow-y:auto !important;
+	overflow-x:hidden;*/
+}
+.iphone .screen{
+	height:auto !important;
+	overflow-y:auto !important;
+	overflow-x:hidden;
+}
+.iphone .tab{
+	height:auto !important;
+	overflow-y:auto !important;
+	overflow-x:hidden;
+}
+.iphone .scroll{
+	height:auto !important;
+	overflow-y:auto !important;
+	overflow-x:hidden;
+}
+
+.iphone .bigbutton {
+	display:none;
+}
+.iphone .tabbar {
+	top:0px;
+}

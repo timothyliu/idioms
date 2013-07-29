@@ -1,0 +1,101 @@
+﻿<!DOCTYPE html>
+<html>
+	<head>
+	<meta charset="utf-8">
+	<meta name="description" content="成語接龍遊戲">
+    <meta name="viewport" content="user-scalable=no, width=device-width"/>
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+	<title>成語接龍</title>
+    <link rel="stylesheet" type="text/css" href="style/iphone.css" media="screen"/>
+	<style>
+		li {
+			margin-left: 5px;
+			cursor: pointer;
+		}
+		div.ipt {
+			white-space: nowrap;
+			vertical-align: middle;
+		}
+		button#find {
+			color: darkred;
+		}
+	</style>
+	<link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.9.1/themes/base/jquery-ui.css" />
+	</head>
+	<body>
+		<h1>成語接龍</h1>
+		<div class='ipt'>
+			<label for='idiom'>成語：</label> <input type='text' name='idiom' id='idiom' value='一元復始' placeholder='請輸入成語'>
+			<button id='find' >Find</button>
+			<button id='last' class='button' disabled>Back</button>
+		</div>
+		<div id='result'></div>
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+		<script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.10.2/jquery-ui.min.js"></script>
+		<script src="zuinHelper.js"></script>
+		<script src="idiomsHelper.js"></script>
+		<script type="text/javascript">
+			var z = zuinHelper;
+			var idioms = idiomsHelper;
+			var historyIdioms = [];
+			$(document).ready(function() {
+				z.onReady(function(){
+					idioms.onReady(function(){
+						$('#find').attr('onclick', 'showSolitaire();');
+						$('#last').attr('onclick', 'showLast();');
+						$('#find').attr('disabled', false);
+						$('#idiom').autocomplete({
+				            source: function( request, response ) {
+					            var matcher = new RegExp( "^" + $.ui.autocomplete.escapeRegex( request.term ), "i" );
+					            response( $.grep( idioms.idioms, function( item ){
+					                return matcher.test( item );
+					            }) );
+					        },
+				            minLength: 1
+				        });
+					});
+				});
+			});
+			function showSolitaire(){
+				var ipt = $('#idiom').val();
+				if(!ipt || ipt.length==0) return;
+				if(historyIdioms.length>100) historyIdioms.shift(); //remove oldest item
+				historyIdioms.push(ipt);
+				if(historyIdioms.length>=2) $('#last').attr('disabled', false);
+
+				var lastChar = ipt.slice(-1);
+				result = getIdioms(lastChar);
+				var opt = [];
+				for(var i=0; i<result.length; i++){
+					var r = $.trim(result[i]);
+					if(r.length<4) continue;
+					//console.log(i + ' ' + r + ' -> ' +r.slice(-1));
+					var tmp = getIdioms(r.slice(-1), true);
+					var hasNext = (tmp&&tmp[0] == 'true');
+					opt.push('<li onclick="findIdiom($(this).text());"' + (hasNext? 'class="arrow"':'') + ' title="' + z.parse(r) + '">' + r + '</li>');
+				}
+				$('#result').html('<ol>' + opt.join('\n') + '</ol>');
+			}
+			function getIdioms(firstChar, isTest){
+				var samePhone = z.findSame(firstChar);
+				var result = [];
+				for(var i=0; i<samePhone.length; i++){
+					var tmp = idioms.startWith(samePhone[i], isTest);
+					if(tmp.length>0) result = result.concat(tmp);
+				}
+				return result;
+			}
+			function findIdiom(ipt){
+				$('#idiom').val(ipt);
+				showSolitaire();
+			}
+			function showLast(){
+				if(historyIdioms.length<=2) $('#last').attr('disabled', true);
+				historyIdioms.pop()
+				var tmp = historyIdioms.pop();
+				$('#idiom').val(tmp);
+				showSolitaire();
+			}
+		</script>
+	</body>
+</html>
