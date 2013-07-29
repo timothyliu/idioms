@@ -4,11 +4,13 @@
 
 ## Usage
 
-put the fileserver.js to any place where you want to share your files.
+1. use/clone fileserver project from [https://github.com/timothyliu/fileserver]
+2. put the fileserver.js to idioms project path
+3. run below commnd:
 
     node fileserver.js
 
-use browser to view url: http://localhost:1337/
+4. use browser to view url: [http://localhost:1337/idioms-mobile.html]
 
 ## Version
 
