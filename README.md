@@ -10,7 +10,7 @@
 
     node fileserver.js
 
-4. use browser to view url: [http://localhost:1337/idioms-mobile.html]
+4. use browser to view url: [http://localhost:1337/idioms-mobile.html](http://localhost:1337/idioms-mobile.html)
 
 ## Version
 
